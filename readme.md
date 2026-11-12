@@ -186,5 +186,5 @@ Yönetim (`ADMIN_TOKEN`): `POST/GET /api/admin/websites`, `PATCH /websites/:id` 
 ## 6. Ölçekleme notları
 
 * Çoklu instance: Redis ile rate limit paylaşılır; oturum çözümü DB'ye de bakar. Yine de ~1M+ olay/gün üstünde `pageviews`'ı aylık partition'a (pg_partman) alın ve günlük özet tabloları ekleyin.
-* Coğrafi konum: `GEOIP_DB=/path/GeoLite2-City.mmdb` + `npm i maxmind`, veya Cloudflare arkasında `GEO_COUNTRY_HEADER=CF-IPCountry`.
+* Coğrafi konum: MaxMind hesabından GeoLite2 City veritabanını indirip `geo/GeoLite2-City.mmdb` konumuna koyun; Compose bu klasörü container içinde salt-okunur `/geo` olarak bağlar. `.env` içinde `GEOIP_DB=/geo/GeoLite2-City.mmdb` ayarlayıp uygulamayı yeniden oluşturun. `maxmind` paketi opsiyonel bağımlılık olarak kurulur. Başlangıçta `[geo] MaxMind veritabanı yüklendi` kaydı görünmelidir; yükleme başarısızsa uygulama loglarında neden belirtilir. Alternatif olarak yalnızca istekleriniz Cloudflare üzerinden geliyorsa `GEO_COUNTRY_HEADER=CF-IPCountry` kullanın; bu durumda origin sunucusuna doğrudan erişimi engelleyin veya bu başlığı güvenilir proxy'de doğrulayın.
 * Hata ayıklama: `DEBUG_TRACK=1` düşürülen olayların nedenini loglar.

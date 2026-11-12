@@ -6,6 +6,8 @@ services:
     environment:
       DATABASE_URL: postgres://analytics:${POSTGRES_PASSWORD}@db:5432/analytics
       REDIS_URL: redis://redis:6379
+    volumes:
+      - ./geo:/geo:ro
     ports: ["127.0.0.1:3000:3000"]   # yalnızca reverse proxy erişir
     depends_on:
       db: { condition: service_healthy }
