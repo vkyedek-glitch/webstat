@@ -68,8 +68,8 @@ async function sendReport(kind, from, to, today) {
       const enabled = kind === 'daily' ? settings.alertDaily : settings.alertWeekly;
       if (!enabled || !settings.alertEmail) return;
       const markColumn = kind === 'daily' ? 'last_daily_sent' : 'last_weekly_sent';
-      const sent = await client.query(`SELECT ${markColumn} AS last_sent FROM system_settings WHERE id = 1`);
-      if (sent.rows[0] && String(sent.rows[0].last_sent || '').slice(0, 10) === today) return;
+      const sent = await client.query(`SELECT ${markColumn}::text AS last_sent FROM system_settings WHERE id = 1`);
+      if (sent.rows[0]?.last_sent === today) return;
 
       const result = await client.query(
         `SELECT w.name, w.domain_name, count(DISTINCT s.id)::int AS sessions,
