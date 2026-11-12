@@ -68,13 +68,137 @@ router.get('/:siteId/timeseries', wrap(async (req, res) => {
 // 3) En çok görüntülenen sayfalar
 router.get('/:siteId/pages', wrap(async (req, res) => {
   const { from, to } = parseRange(req);
+  const [r, total] = await Promise.all([
+    pool.query(
+    `SELECT p.path, count(*)::int AS views, count(DISTINCT p.visitor_hash)::int AS visitors,
+            COALESCE(round(avg(NULLIF(p.duration_s, 0))::numeric, 1), 0) AS avg_time_seconds,
+            (SELECT count(*)::int FROM sessions s
+              WHERE s.website_id = $1 AND s.entry_path = p.path AND s.started_at >= $2 AND s.started_at < $3) AS entrances,
+            (SELECT count(*)::int FROM sessions s
+              WHERE s.website_id = $1 AND s.exit_path = p.path AND s.started_at >= $2 AND s.started_at < $3) AS exits,
+            COALESCE((SELECT round(100.0 * count(*) FILTER (WHERE s.pageviews <= 1) / NULLIF(count(*), 0), 1)
+              FROM sessions s
+              WHERE s.website_id = $1 AND s.entry_path = p.path AND s.started_at >= $2 AND s.started_at < $3), 0) AS bounce_rate
+       FROM pageviews p WHERE p.website_id = $1 AND p.created_at >= $2 AND p.created_at < $3
+      GROUP BY p.path ORDER BY views DESC LIMIT $4`,
+    [req.params.siteId, from, to, limitOf(req)]),
+    pool.query(
+      `SELECT count(DISTINCT path)::int AS total
+         FROM pageviews WHERE website_id = $1 AND created_at >= $2 AND created_at < $3`,
+      [req.params.siteId, from, to]),
+  ]);
+  res.json({ data: r.rows, totalPages: total.rows[0].total });
+}));
+
+router.get('/:siteId/audience', wrap(async (req, res) => {
+  const { from, to } = parseRange(req);
+  const id = req.params.siteId;
+  const summary = await pool.query(
+    `SELECT count(*)::int AS visitors,
+            count(*) FILTER (WHERE session_count = 1)::int AS new_visitors,
+            count(*) FILTER (WHERE session_count > 1)::int AS returning_visitors
+       FROM (
+         SELECT visitor_hash, count(*) AS session_count
+           FROM sessions WHERE website_id = $1 AND started_at >= $2 AND started_at < $3
+          GROUP BY visitor_hash
+       ) visitors`,
+    [id, from, to]);
+
+  const params = [id, from, to];
+  const search = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 100) : '';
+  let filter = '';
+  if (search) {
+    params.push(`%${search}%`);
+    filter = `WHERE visitor_id ILIKE $4 OR country ILIKE $4 OR device ILIKE $4 OR last_path ILIKE $4`;
+  }
+  params.push(limitOf(req));
+  const visitors = await pool.query(
+    `SELECT * FROM (
+       SELECT 'visitor-' || substr(visitor_hash, 1, 12) AS visitor_id,
+              count(*)::int AS sessions,
+              max(last_seen_at) AS last_seen_at,
+              COALESCE((array_agg(country ORDER BY last_seen_at DESC))[1]::text, '??') AS country,
+              (array_agg(device_type ORDER BY last_seen_at DESC))[1] AS device,
+              (array_agg(COALESCE(exit_path, entry_path, '/') ORDER BY last_seen_at DESC))[1] AS last_path
+         FROM sessions
+        WHERE website_id = $1 AND started_at >= $2 AND started_at < $3
+        GROUP BY visitor_hash
+     ) audience ${filter}
+      ORDER BY last_seen_at DESC LIMIT $${params.length}`,
+    params);
+  res.json({
+    ...summary.rows[0],
+    note: 'Visitor identities rotate daily for privacy; returning visitors only reflect repeat sessions within the selected period and hash window.',
+    data: visitors.rows,
+  });
+}));
+
+router.get('/:siteId/traffic', wrap(async (req, res) => {
+  const { from, to } = parseRange(req);
+  const id = req.params.siteId;
+  const params = [id, from, to];
+  const [categories, referrers, terms, landingPages, exitPages, funnel] = await Promise.all([
+    pool.query(
+      `SELECT CASE
+                WHEN lower(COALESCE(utm_medium, '')) IN ('social', 'social_media', 'community') OR lower(COALESCE(utm_source, '')) ~ '(facebook|instagram|linkedin|tiktok|youtube|twitter|pinterest|reddit)' THEN 'Social'
+                WHEN lower(COALESCE(utm_medium, '')) IN ('search', 'organic') OR lower(COALESCE(utm_source, '')) ~ '(google|bing|yahoo|duckduckgo|baidu|yandex)' THEN 'Search'
+                WHEN referrer_domain IS NULL AND utm_source IS NULL THEN 'Direct'
+                WHEN referrer_domain ~* '(google|bing|yahoo|duckduckgo|baidu|yandex)\\.' THEN 'Search'
+                WHEN referrer_domain ~* '(facebook|instagram|linkedin|tiktok|youtube|x\\.com|twitter|pinterest|reddit)\\.' THEN 'Social'
+                ELSE 'Referral'
+              END AS category,
+              count(*)::int AS sessions, count(DISTINCT visitor_hash)::int AS visitors
+         FROM sessions WHERE website_id = $1 AND started_at >= $2 AND started_at < $3
+        GROUP BY 1 ORDER BY sessions DESC`, params),
+    pool.query(
+      `SELECT COALESCE(referrer_domain, '(direct)') AS value,
+              count(*)::int AS sessions, count(DISTINCT visitor_hash)::int AS visitors
+         FROM sessions WHERE website_id = $1 AND started_at >= $2 AND started_at < $3
+        GROUP BY 1 ORDER BY sessions DESC LIMIT $4`, [...params, limitOf(req)]),
+    pool.query(
+      `SELECT utm_term AS value, count(*)::int AS sessions
+         FROM sessions WHERE website_id = $1 AND started_at >= $2 AND started_at < $3
+          AND utm_term IS NOT NULL AND utm_term <> ''
+        GROUP BY utm_term ORDER BY sessions DESC LIMIT $4`, [...params, limitOf(req)]),
+    pool.query(
+      `SELECT COALESCE(entry_path, '(unknown)') AS value, count(*)::int AS sessions
+         FROM sessions WHERE website_id = $1 AND started_at >= $2 AND started_at < $3
+        GROUP BY 1 ORDER BY sessions DESC LIMIT $4`, [...params, limitOf(req)]),
+    pool.query(
+      `SELECT COALESCE(exit_path, '(unknown)') AS value, count(*)::int AS sessions
+         FROM sessions WHERE website_id = $1 AND started_at >= $2 AND started_at < $3
+        GROUP BY 1 ORDER BY sessions DESC LIMIT $4`, [...params, limitOf(req)]),
+    pool.query(
+      `SELECT
+         (SELECT count(DISTINCT visitor_hash)::int FROM sessions WHERE website_id = $1 AND started_at >= $2 AND started_at < $3) AS visitors,
+         (SELECT count(*)::int FROM sessions WHERE website_id = $1 AND started_at >= $2 AND started_at < $3) AS sessions,
+         (SELECT count(*)::int FROM pageviews WHERE website_id = $1 AND created_at >= $2 AND created_at < $3) AS pageviews,
+         (SELECT count(*)::int FROM sessions WHERE website_id = $1 AND started_at >= $2 AND started_at < $3 AND pageviews > 1) AS engaged_sessions,
+         (SELECT count(DISTINCT e.session_id)::int FROM events e
+           WHERE e.website_id = $1 AND e.created_at >= $2 AND e.created_at < $3) AS event_sessions`,
+      params),
+  ]);
+  res.json({
+    categories: categories.rows,
+    referrers: referrers.rows,
+    searchTerms: terms.rows,
+    landingPages: landingPages.rows,
+    exitPages: exitPages.rows,
+    funnel: funnel.rows[0],
+  });
+}));
+
+router.get('/:siteId/heatmap', wrap(async (req, res) => {
+  const { from, to } = parseRange(req);
+  const tz = parseTz(req);
   const r = await pool.query(
-    `SELECT path, count(*)::int AS views, count(DISTINCT visitor_hash)::int AS visitors,
-            COALESCE(round(avg(NULLIF(duration_s, 0))::numeric, 1), 0) AS avg_time_seconds
+    `SELECT extract(isodow FROM created_at AT TIME ZONE $4)::int AS weekday,
+            extract(hour FROM created_at AT TIME ZONE $4)::int AS hour,
+            count(*)::int AS pageviews
        FROM pageviews WHERE website_id = $1 AND created_at >= $2 AND created_at < $3
-      GROUP BY path ORDER BY views DESC LIMIT $4`,
-    [req.params.siteId, from, to, limitOf(req)]);
-  res.json({ data: r.rows });
+      GROUP BY 1, 2 ORDER BY 1, 2`,
+    [req.params.siteId, from, to, tz]);
+  res.json({ tz, data: r.rows });
 }));
 
 // 4) Oturum bazlı kırılımlar (kaynak, cihaz, OS, tarayıcı, ülke, UTM, giriş sayfası)
@@ -123,14 +247,18 @@ router.get('/:siteId/events', wrap(async (req, res) => {
 // 6) Anlık: son 5 dakika
 router.get('/:siteId/realtime', wrap(async (req, res) => {
   const id = req.params.siteId;
-  const [v, pages] = await Promise.all([
+  const [v, pages, recent] = await Promise.all([
     pool.query(`SELECT count(DISTINCT visitor_hash)::int AS visitors FROM sessions
                  WHERE website_id = $1 AND last_seen_at > now() - interval '5 minutes'`, [id]),
     pool.query(`SELECT path, count(*)::int AS views FROM pageviews
                  WHERE website_id = $1 AND created_at > now() - interval '5 minutes'
                  GROUP BY path ORDER BY views DESC LIMIT 10`, [id]),
+    pool.query(`SELECT p.path, p.created_at, s.device_type AS device
+                  FROM pageviews p JOIN sessions s ON s.id = p.session_id
+                 WHERE p.website_id = $1
+                 ORDER BY p.created_at DESC LIMIT 10`, [id]),
   ]);
-  res.json({ activeVisitors: v.rows[0].visitors, pages: pages.rows });
+  res.json({ activeVisitors: v.rows[0].visitors, pages: pages.rows, recent: recent.rows });
 }));
 
 module.exports = router;

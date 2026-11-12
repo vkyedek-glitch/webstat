@@ -33,10 +33,15 @@
       <button id="add-site-open" class="button add-site" type="button"><span>＋</span><span data-i18n="addWebsite">Add website</span></button>
       <nav class="side-nav">
         <a class="nav-item active" href="#overview"><span class="nav-icon">◫</span><span data-i18n="overview">Overview</span></a>
-        <a class="nav-item" href="#pages"><span class="nav-icon">▤</span><span data-i18n="pages">Pages</span></a>
+        <a class="nav-item" href="#traffic"><span class="nav-icon">⌁</span><span data-i18n="traffic">Traffic</span></a>
         <a class="nav-item" href="#audience"><span class="nav-icon">◉</span><span data-i18n="audience">Audience</span></a>
+        <a class="nav-item" href="#pages"><span class="nav-icon">▤</span><span data-i18n="pages">Pages</span></a>
+        <a class="nav-item" href="#sources"><span class="nav-icon">↗</span><span data-i18n="sources">Sources</span></a>
         <a class="nav-item" href="#events"><span class="nav-icon">⌁</span><span data-i18n="events">Events</span></a>
         <a class="nav-item" href="#settings"><span class="nav-icon">⚙</span><span data-i18n="systemSettings">System settings</span></a>
+        <a class="nav-item" href="#notifications"><span class="nav-icon">♧</span><span data-i18n="notifications">Notifications</span></a>
+        <a class="nav-item" href="#status"><span class="nav-icon">◈</span><span data-i18n="systemStatus">System status</span></a>
+        <a class="nav-item" href="#websites"><span class="nav-icon">▣</span><span data-i18n="websites">Websites</span></a>
       </nav>
       <div class="sidebar-bottom">
         <div class="connection"><span class="status-dot"></span><span data-i18n="connected">Connected</span></div>
@@ -55,6 +60,7 @@
             <option value="30" data-i18n="last30">Last 30 days</option>
             <option value="90" data-i18n="last90">Last 90 days</option>
           </select>
+          <button class="button icon-button" id="export-report" type="button" title="Export report" data-i18n-title="exportReport">⇩</button>
           <button class="button icon-button" id="refresh" type="button" title="Refresh" data-i18n-title="refresh">↻</button>
           <button class="button language-button" type="button" data-language-toggle>EN</button>
         </div>
@@ -67,6 +73,7 @@
         <button class="button primary" id="empty-add-site" type="button" data-i18n="addFirstWebsite">Add your first website</button>
       </section>
       <div id="dashboard-content">
+        <section id="overview-view" class="report-view">
         <section class="metric-grid" id="overview">
           <article class="metric-card"><div class="metric-label"><span data-i18n="visitors">Visitors</span><span class="metric-symbol purple">◉</span></div><div class="metric-value" id="metric-visitors">—</div><div class="metric-foot" data-i18n="dailyUnique">Daily unique visitors</div></article>
           <article class="metric-card"><div class="metric-label"><span data-i18n="pageviews">Pageviews</span><span class="metric-symbol blue">▤</span></div><div class="metric-value" id="metric-pageviews">—</div><div class="metric-foot" data-i18n="totalPageviews">Total pageviews</div></article>
@@ -86,17 +93,79 @@
           </article>
         </section>
         <section class="content-grid lower-grid">
-          <article class="panel" id="pages"><div class="panel-heading"><div><h2 data-i18n="topPages">Top pages</h2><p data-i18n="mostViewedPages">Most viewed pages in this period</p></div></div><div id="pages-list" class="table-wrap"></div></article>
-          <article class="panel" id="audience"><div class="panel-heading"><div><h2 data-i18n="audience">Audience</h2><p data-i18n="sessionsBySource">Sessions by source</p></div></div><div id="sources-list" class="rank-list"></div><div class="panel-divider"></div><div class="mini-columns"><div><div class="subheading" data-i18n="devices">Devices</div><div id="devices-list" class="rank-list small-rank"></div></div><div><div class="subheading" data-i18n="countries">Countries</div><div id="countries-list" class="rank-list small-rank"></div></div></div></article>
+          <article class="panel"><div class="panel-heading"><div><h2 data-i18n="topPages">Top pages</h2><p data-i18n="mostViewedPages">Most viewed pages in this period</p></div></div><div id="pages-list" class="table-wrap"></div></article>
+          <article class="panel"><div class="panel-heading"><div><h2 data-i18n="audience">Audience</h2><p data-i18n="sessionsBySource">Sessions by source</p></div></div><div id="sources-list" class="rank-list"></div><div class="panel-divider"></div><div class="mini-columns"><div><div class="subheading" data-i18n="devices">Devices</div><div id="devices-list" class="rank-list small-rank"></div></div><div><div class="subheading" data-i18n="countries">Countries</div><div id="countries-list" class="rank-list small-rank"></div></div></div></article>
         </section>
-        <section class="panel events-panel" id="events"><div class="panel-heading"><div><h2 data-i18n="topEvents">Top events</h2><p data-i18n="customEventsCollected">Custom events collected during this period</p></div></div><div id="events-list" class="table-wrap"></div></section>
+        <section class="content-grid lower-grid">
+          <article class="panel"><div class="panel-heading"><div><h2 data-i18n="activityHeatmap">Weekly activity</h2><p data-i18n="activityHeatmapDescription">Pageviews by weekday and hour</p></div></div><div id="activity-heatmap" class="heatmap-wrap"></div></article>
+          <article class="panel"><div class="panel-heading"><div><h2 data-i18n="recentActivity">Recent activity</h2><p data-i18n="recentActivityDescription">Latest recorded pageviews</p></div></div><div id="recent-activity" class="compact-list"></div></article>
+        </section>
+        </section>
+        <section id="traffic-view" class="report-view hidden">
+          <section class="content-grid lower-grid">
+            <article class="panel"><div class="panel-heading"><div><h2 data-i18n="trafficSources">Traffic sources</h2><p data-i18n="trafficSourcesDescription">How visitors reached this website</p></div></div><div id="traffic-categories" class="rank-list"></div></article>
+            <article class="panel"><div class="panel-heading"><div><h2 data-i18n="conversionFunnel">Conversion funnel</h2><p data-i18n="conversionFunnelDescription">Visitor journey in the selected period</p></div></div><div id="conversion-funnel" class="funnel-list"></div></article>
+          </section>
+          <section class="content-grid lower-grid">
+            <article class="panel"><div class="panel-heading"><div><h2 data-i18n="landingPages">Landing pages</h2><p data-i18n="landingPagesDescription">First page recorded for each session</p></div></div><div id="landing-pages-list" class="table-wrap"></div></article>
+            <article class="panel"><div class="panel-heading"><div><h2 data-i18n="exitPages">Exit pages</h2><p data-i18n="exitPagesDescription">Last page recorded for each session</p></div></div><div id="exit-pages-list" class="table-wrap"></div></article>
+          </section>
+        </section>
+        <section id="audience-view" class="report-view hidden">
+          <section class="metric-grid audience-metrics">
+            <article class="metric-card"><div class="metric-label" data-i18n="totalVisitors">Total visitors</div><div class="metric-value" id="audience-total">—</div></article>
+            <article class="metric-card"><div class="metric-label" data-i18n="newVisitors">New visitors</div><div class="metric-value" id="audience-new">—</div></article>
+            <article class="metric-card"><div class="metric-label" data-i18n="returningVisitors">Returning visitors</div><div class="metric-value" id="audience-returning">—</div></article>
+            <article class="metric-card"><div class="metric-label" data-i18n="countries">Countries</div><div class="metric-value" id="audience-countries">—</div></article>
+          </section>
+          <section class="content-grid lower-grid">
+            <article class="panel"><div class="panel-heading"><div><h2 data-i18n="geography">Geography</h2><p data-i18n="visitorsByCountry">Visitors by country</p></div></div><div id="audience-countries-list" class="rank-list"></div></article>
+            <article class="panel"><div class="panel-heading"><div><h2 data-i18n="deviceBreakdown">Device breakdown</h2><p data-i18n="visitorsByDevice">Visitors by device type</p></div></div><div id="audience-devices-list" class="rank-list"></div></article>
+          </section>
+          <section class="panel report-panel"><div class="panel-heading"><div><h2 data-i18n="visitorList">Visitor list</h2><p data-i18n="visitorListDescription">Anonymized visitor activity in the selected period</p></div><input id="visitor-search" class="table-search" type="search" data-i18n-placeholder="visitorSearch" placeholder="Search visitor, city, country or page"></div><div id="visitor-privacy-note" class="privacy-note"></div><div id="visitor-list" class="table-wrap"></div></section>
+        </section>
+        <section id="pages-view" class="report-view hidden">
+          <section class="metric-grid audience-metrics">
+            <article class="metric-card"><div class="metric-label" data-i18n="totalPages">Total pages</div><div class="metric-value" id="pages-total">—</div></article>
+            <article class="metric-card"><div class="metric-label" data-i18n="pageviews">Pageviews</div><div class="metric-value" id="pages-views">—</div></article>
+            <article class="metric-card"><div class="metric-label" data-i18n="avgTime">Avg. time on page</div><div class="metric-value" id="pages-average">—</div></article>
+            <article class="metric-card"><div class="metric-label" data-i18n="bounceRate">Bounce rate</div><div class="metric-value" id="pages-bounce">—</div></article>
+          </section>
+          <section class="panel report-panel"><div class="panel-heading"><div><h2 data-i18n="pagePerformance">Page performance</h2><p data-i18n="pagePerformanceDescription">Views, visitors, time on page and session outcomes</p></div></div><div id="pages-report-list" class="table-wrap"></div></section>
+        </section>
+        <section id="sources-view" class="report-view hidden">
+          <section class="metric-grid audience-metrics">
+            <article class="metric-card"><div class="metric-label" data-i18n="searchTraffic">Search</div><div class="metric-value" id="source-search">—</div></article>
+            <article class="metric-card"><div class="metric-label" data-i18n="socialTraffic">Social</div><div class="metric-value" id="source-social">—</div></article>
+            <article class="metric-card"><div class="metric-label" data-i18n="directTraffic">Direct</div><div class="metric-value" id="source-direct">—</div></article>
+            <article class="metric-card"><div class="metric-label" data-i18n="referralTraffic">Referral</div><div class="metric-value" id="source-referral">—</div></article>
+          </section>
+          <section class="content-grid lower-grid">
+            <article class="panel"><div class="panel-heading"><div><h2 data-i18n="sourceDetails">Source details</h2><p data-i18n="sourceDetailsDescription">Referrer domains and attributed visits</p></div></div><div id="source-details-list" class="table-wrap"></div></article>
+            <article class="panel"><div class="panel-heading"><div><h2 data-i18n="campaignTerms">Campaign terms</h2><p data-i18n="campaignTermsDescription">Search or campaign terms provided as UTM parameters</p></div></div><div id="campaign-terms-list" class="table-wrap"></div></article>
+          </section>
+        </section>
+        <section id="events-view" class="report-view hidden">
+          <section class="panel events-panel"><div class="panel-heading"><div><h2 data-i18n="topEvents">Top events</h2><p data-i18n="customEventsCollected">Custom events collected during this period</p></div></div><div id="events-list" class="table-wrap"></div></section>
+        </section>
+        <section id="status-view" class="report-view hidden">
+          <section class="metric-grid audience-metrics">
+            <article class="metric-card"><div class="metric-label" data-i18n="databaseStatus">Database</div><div class="metric-value" id="status-database">—</div></article>
+            <article class="metric-card"><div class="metric-label" data-i18n="queueLength">Write queue</div><div class="metric-value" id="status-queue">—</div></article>
+            <article class="metric-card"><div class="metric-label" data-i18n="cachedSessions">Cached sessions</div><div class="metric-value" id="status-sessions">—</div></article>
+          </section>
+          <section class="panel"><div class="panel-heading"><div><h2 data-i18n="systemStatus">System status</h2><p data-i18n="systemStatusDescription">Database and event writer health</p></div><button id="refresh-status" class="button" type="button" data-i18n="refresh">Refresh</button></div><p id="status-message" class="muted" role="status"></p></section>
+        </section>
+        <section id="websites-view" class="report-view hidden">
         <section class="panel site-settings">
           <div class="panel-heading"><div><h2 data-i18n="siteSettings">Website settings</h2><p data-i18n="siteSettingsDescription">Manage tracking and access for this website</p></div><div class="settings-actions"><button id="toggle-site" class="button" type="button"></button><button id="rotate-token" class="button" type="button" data-i18n="rotateToken">Rotate read token</button><button id="delete-site" class="button danger-outline" type="button" data-i18n="deleteWebsite">Delete website</button></div></div>
           <div class="site-details"><div><span data-i18n="domain">Domain</span><strong id="site-domain">—</strong></div><div><span data-i18n="trackingStatus">Tracking status</span><strong id="site-status">—</strong></div><div><span data-i18n="created">Created</span><strong id="site-created">—</strong></div></div>
           <div class="snippet-heading"><div><h3 data-i18n="trackingSnippet">Tracking snippet</h3><p data-i18n="snippetDescription">Add this snippet inside the &lt;head&gt; of your website.</p></div><button id="copy-snippet" class="button" type="button" data-i18n="copy">Copy</button></div>
           <pre id="snippet-code" class="code-block"></pre>
         </section>
-        <section class="panel system-settings" id="settings">
+        </section>
+        <section id="settings-view" class="report-view hidden">
+        <section class="panel system-settings">
           <div class="panel-heading"><div><h2 data-i18n="systemSettings">System settings</h2><p data-i18n="systemSettingsDescription">Configure your public URL, mail server, and email alerts.</p></div></div>
           <form id="settings-form">
             <div class="settings-section">
@@ -120,7 +189,7 @@
               <p id="smtp-password-status" class="muted"></p>
             </div>
             <div class="settings-section">
-              <h3 data-i18n="emailAlerts">Email alerts</h3>
+              <h3 id="email-alerts-section" data-i18n="emailAlerts">Email alerts</h3>
               <label class="checkbox-label"><input id="setting-alert-daily" type="checkbox"><span data-i18n="dailyReport">Daily analytics report (UTC)</span></label>
               <label class="checkbox-label"><input id="setting-alert-weekly" type="checkbox"><span data-i18n="weeklyReport">Weekly analytics report (Monday, UTC)</span></label>
               <label class="checkbox-label"><input id="setting-alert-queue" type="checkbox"><span data-i18n="queueErrors">Database write failures (at most once per 30 minutes)</span></label>
@@ -134,6 +203,7 @@
             <p id="settings-message" class="settings-message" role="status"></p>
           </form>
         </section>
+        </section>
         <footer><span>Webstat · <span data-i18n="privacyFirst">Privacy-first analytics</span></span><span><a href="/health" target="_blank" rel="noreferrer" data-i18n="systemHealth">System health</a></span></footer>
       </div>
     </main>
@@ -142,7 +212,7 @@
     <form id="site-form" class="modal-card">
       <div class="modal-title"><div><p class="eyebrow" data-i18n="workspace">WORKSPACE</p><h2 data-i18n="addWebsite">Add website</h2></div><button type="button" class="close-button" data-close-dialog aria-label="Close">×</button></div>
       <label for="site-name" data-i18n="websiteName">Website name</label><input id="site-name" name="name" maxlength="100" required placeholder="My website">
-      <label for="site-domain" data-i18n="domain">Domain</label><input id="site-domain" name="domain" required placeholder="example.com">
+      <label for="site-domain-input" data-i18n="domain">Domain</label><input id="site-domain-input" name="domain" required placeholder="example.com">
       <label class="checkbox-label"><input type="checkbox" name="allow_subdomains" checked><span data-i18n="allowSubdomains">Allow subdomains</span></label>
       <label class="checkbox-label"><input type="checkbox" name="enforce_origin" checked><span data-i18n="enforceOrigin">Validate request origin</span></label>
       <p id="site-form-error" class="error" role="alert"></p>

@@ -124,9 +124,12 @@ SPA (React/Vue/Next): `history.pushState` otomatik yakalanır, ek kod gerekmez.
 
 Sunucu çalışırken `http://localhost:3000/` adresini açın ve `.env` içindeki `DASHBOARD_USERNAME` ile en az 12 karakterli `DASHBOARD_PASSWORD` değerlerini kullanarak giriş yapın. `ADMIN_TOKEN` web paneli girişinde kullanılmaz; doğrudan yönetim API'si ve otomasyonlar için ayrı tutulur. Panel girişi, dakikada en fazla 10 deneme ile sınırlandırılır ve 12 saatlik sunucu belleği oturumu oluşturur; çıkışta oturum iptal edilir. Sunucu yeniden başladığında tekrar giriş gerekir. Dashboard aynı Express sunucusundan sunulur; ayrı bir frontend servisi veya CORS ayarı gerekmez.
 
-Arayüz Türkçe ve İngilizce kullanılabilir. Dil tercihi tarayıcıda saklanır; yönetici token'ı yalnızca geçerli sekme oturumunda tutulur. Dashboard üzerinden:
+Arayüz Türkçe ve İngilizce kullanılabilir. Dil tercihi tarayıcıda saklanır; yönetici token'ı yalnızca geçerli sekme oturumunda tutulur. Dashboard Türkçe/İngilizce ve seçili tarih aralığı desteği sunar. Üst çubuktaki dışa aktarma düğmesi açık raporun CSV çıktısını indirir. Dashboard üzerinden:
 
-* Tarih aralığına göre özet metrikleri, trafik grafiği, en çok görüntülenen sayfalar, kaynak/cihaz/ülke kırılımları ve özel olayları inceleyin.
+* Genel bakışta özet metrikleri, trafik grafiği, haftanın gün/saat aktivite haritası ve son sayfa görüntülemelerini inceleyin.
+* Trafik raporunda kaynak kategorilerini, ziyaretçi hunisini, giriş ve çıkış sayfalarını; kaynaklar raporunda yönlendiren alan adlarını ve iletilmiş UTM terimlerini inceleyin. Arama motorlarının sorgu kelimeleri URL'lerden alınmadığından yalnızca `utm_term` gibi açıkça iletilen terimler raporlanır.
+* Ziyaretçiler raporunda anonim kimlikleri, konum/cihaz kırılımını ve ziyaretçi aramasını kullanın. Kimlikler her gün döndüğü için yeni/geri dönen sınıflandırması yalnızca aynı günlük kimlik penceresindeki oturumları kapsar; günler arası ziyaretçi takibi yapılmaz.
+* Sayfalar raporunda görüntülenme, tekil ziyaretçi, ortalama süre, giriş/çıkış ve hemen çıkma oranını; olaylar raporunda özel olay sayılarını görün.
 * Son beş dakikanın aktif ziyaretçilerini ve sayfalarını 30 saniyede bir yenilenen anlık görünümde takip edin.
 * Site ekleyin, izleme kodunu kopyalayın, izlemeyi etkinleştirip devre dışı bırakın, okuma token'ını yenileyin veya siteyi tüm verileriyle silin.
 * **Sistem ayarları** bölümünde `PUBLIC_URL` değerini değiştirin. Yeni oluşturulan ve listelenen tracker snippet'leri bu adresi kullanır; mevcut sitelerdeki snippet'leri hedef web sitelerinde ayrıca güncelleyin.
@@ -144,6 +147,9 @@ Başlık: `Authorization: Bearer <ADMIN_TOKEN | site read_token>`. Tüm uçlar: 
 | `GET /api/stats/:siteId/overview` | Oturum, ziyaretçi, sayfa görüntüleme, hemen çıkma oranı, ort. süre |
 | `GET /api/stats/:siteId/timeseries?interval=hour\|day\|week\|month` | Zaman serisi |
 | `GET /api/stats/:siteId/pages` | En çok görüntülenen sayfalar + ort. kalma süresi |
+| `GET /api/stats/:siteId/audience?q=...` | Anonim ziyaretçi özeti ve filtrelenebilir liste |
+| `GET /api/stats/:siteId/traffic` | Kaynak kategorileri, yönlendirenler, UTM terimleri, giriş/çıkış sayfaları ve huni |
+| `GET /api/stats/:siteId/heatmap` | Saat ve haftanın gününe göre sayfa görüntülemeleri |
 | `GET /api/stats/:siteId/breakdown/:dim` | `referrer, device, os, browser, country, city, utm_source, utm_medium, utm_campaign, entry_path` |
 | `GET /api/stats/:siteId/events?name=satin_alma&prop=plan&value=pro` | Özel olaylar (JSONB filtre) |
 | `GET /api/stats/:siteId/realtime` | Son 5 dakika |
