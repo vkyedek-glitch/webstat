@@ -152,6 +152,9 @@ async function flush() {
     if (client) await client.query('ROLLBACK').catch(() => {});
     metrics.failedBatches++;
     console.error('[writer] batch yazılamadı:', err.message);
+    require('./alerts').notifyQueueFailure(err.message).catch((alertError) => {
+      console.error('[alerts] queue error notification failed:', alertError.message);
+    });
     const retry = batch.filter((e) => (e.retries = (e.retries || 0) + 1) <= 2);
     queue.unshift(...retry);
   } finally {

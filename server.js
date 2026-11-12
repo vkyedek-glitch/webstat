@@ -11,6 +11,7 @@ const redis = require('./src/redis');
 const writer = require('./src/services/writer');
 const maintenance = require('./src/services/maintenance');
 const geo = require('./src/services/geo');
+const alerts = require('./src/services/alerts');
 const { createRateLimiter } = require('./src/middleware/rateLimit');
 
 const app = express();
@@ -71,6 +72,7 @@ async function main() {
   await geo.init();
   writer.start();
   maintenance.start();
+  await alerts.start();
   const server = app.listen(config.port, () => console.log(`Analytics ${config.port} portunda (${config.env})`));
   server.keepAliveTimeout = 65_000;
 
@@ -79,6 +81,7 @@ async function main() {
     if (closing) return; closing = true;
     console.log(`${sig}: kapanıyor, kuyruk boşaltılıyor…`);
     server.close();
+    alerts.stop();
     await writer.stop();
     if (redis) redis.disconnect();
     await pool.end();

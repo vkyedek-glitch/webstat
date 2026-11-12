@@ -36,6 +36,7 @@
         <a class="nav-item" href="#pages"><span class="nav-icon">▤</span><span data-i18n="pages">Pages</span></a>
         <a class="nav-item" href="#audience"><span class="nav-icon">◉</span><span data-i18n="audience">Audience</span></a>
         <a class="nav-item" href="#events"><span class="nav-icon">⌁</span><span data-i18n="events">Events</span></a>
+        <a class="nav-item" href="#settings"><span class="nav-icon">⚙</span><span data-i18n="systemSettings">System settings</span></a>
       </nav>
       <div class="sidebar-bottom">
         <div class="connection"><span class="status-dot"></span><span data-i18n="connected">Connected</span></div>
@@ -94,6 +95,44 @@
           <div class="site-details"><div><span data-i18n="domain">Domain</span><strong id="site-domain">—</strong></div><div><span data-i18n="trackingStatus">Tracking status</span><strong id="site-status">—</strong></div><div><span data-i18n="created">Created</span><strong id="site-created">—</strong></div></div>
           <div class="snippet-heading"><div><h3 data-i18n="trackingSnippet">Tracking snippet</h3><p data-i18n="snippetDescription">Add this snippet inside the &lt;head&gt; of your website.</p></div><button id="copy-snippet" class="button" type="button" data-i18n="copy">Copy</button></div>
           <pre id="snippet-code" class="code-block"></pre>
+        </section>
+        <section class="panel system-settings" id="settings">
+          <div class="panel-heading"><div><h2 data-i18n="systemSettings">System settings</h2><p data-i18n="systemSettingsDescription">Configure your public URL, mail server, and email alerts.</p></div></div>
+          <form id="settings-form">
+            <div class="settings-section">
+              <h3 data-i18n="publicAddress">Public address</h3>
+              <p class="muted" data-i18n="publicAddressHelp">Used to create tracking snippets. Existing website snippets are not changed.</p>
+              <label for="setting-public-url" data-i18n="publicUrl">Public URL</label>
+              <input id="setting-public-url" type="url" required placeholder="https://analytics.example.com">
+            </div>
+            <div class="settings-section">
+              <h3 data-i18n="emailServer">Email server (SMTP)</h3>
+              <div class="settings-form-grid">
+                <div><label for="setting-smtp-host" data-i18n="smtpHost">SMTP host</label><input id="setting-smtp-host" autocomplete="off" placeholder="smtp.example.com"></div>
+                <div><label for="setting-smtp-port" data-i18n="smtpPort">Port</label><input id="setting-smtp-port" type="number" min="1" max="65535" value="587"></div>
+                <div><label for="setting-smtp-user" data-i18n="smtpUser">Username</label><input id="setting-smtp-user" autocomplete="off"></div>
+                <div><label for="setting-smtp-password" data-i18n="smtpPassword">Password</label><input id="setting-smtp-password" type="password" autocomplete="new-password" placeholder="••••••••"></div>
+                <div><label for="setting-smtp-from" data-i18n="smtpFrom">Sender email</label><input id="setting-smtp-from" type="email" placeholder="analytics@example.com"></div>
+                <div><label for="setting-alert-email" data-i18n="alertRecipient">Alert recipient</label><input id="setting-alert-email" type="email" placeholder="you@example.com"></div>
+              </div>
+              <label class="checkbox-label"><input id="setting-smtp-secure" type="checkbox"><span data-i18n="smtpSecure">Use implicit TLS (usually port 465)</span></label>
+              <label class="checkbox-label"><input id="setting-clear-smtp-password" type="checkbox"><span data-i18n="clearSmtpPassword">Clear saved SMTP password</span></label>
+              <p id="smtp-password-status" class="muted"></p>
+            </div>
+            <div class="settings-section">
+              <h3 data-i18n="emailAlerts">Email alerts</h3>
+              <label class="checkbox-label"><input id="setting-alert-daily" type="checkbox"><span data-i18n="dailyReport">Daily analytics report (UTC)</span></label>
+              <label class="checkbox-label"><input id="setting-alert-weekly" type="checkbox"><span data-i18n="weeklyReport">Weekly analytics report (Monday, UTC)</span></label>
+              <label class="checkbox-label"><input id="setting-alert-queue" type="checkbox"><span data-i18n="queueErrors">Database write failures (at most once per 30 minutes)</span></label>
+              <label class="checkbox-label"><input id="setting-alert-health" type="checkbox"><span data-i18n="databaseHealthAlerts">Database unavailable / recovered</span></label>
+              <p class="muted" data-i18n="encryptionNote">SMTP password is encrypted in the database with the server-only SETTINGS_ENCRYPTION_KEY.</p>
+            </div>
+            <div class="settings-actions settings-form-actions">
+              <button id="test-email" class="button" type="button" data-i18n="sendTestEmail">Send test email</button>
+              <button class="button primary" type="submit" data-i18n="saveSettings">Save settings</button>
+            </div>
+            <p id="settings-message" class="settings-message" role="status"></p>
+          </form>
         </section>
         <footer><span>Webstat · <span data-i18n="privacyFirst">Privacy-first analytics</span></span><span><a href="/health" target="_blank" rel="noreferrer" data-i18n="systemHealth">System health</a></span></footer>
       </div>

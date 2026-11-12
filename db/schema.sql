@@ -75,3 +75,22 @@ CREATE TABLE IF NOT EXISTS events (
 CREATE INDEX IF NOT EXISTS events_site_name_idx ON events (website_id, name, created_at DESC);
 CREATE INDEX IF NOT EXISTS events_session_idx   ON events (session_id);
 CREATE INDEX IF NOT EXISTS events_props_gin     ON events USING gin (props jsonb_path_ops);
+
+CREATE TABLE IF NOT EXISTS system_settings (
+  id                    smallint PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  public_url            text        NOT NULL,
+  smtp_host             text,
+  smtp_port             integer     NOT NULL DEFAULT 587,
+  smtp_secure           boolean     NOT NULL DEFAULT false,
+  smtp_user             text,
+  smtp_password_enc     text,
+  smtp_from             text,
+  alert_email           text,
+  alert_daily           boolean     NOT NULL DEFAULT false,
+  alert_weekly          boolean     NOT NULL DEFAULT false,
+  alert_queue_errors    boolean     NOT NULL DEFAULT false,
+  alert_service_health  boolean     NOT NULL DEFAULT false,
+  last_daily_sent       date,
+  last_weekly_sent      date,
+  updated_at            timestamptz NOT NULL DEFAULT now()
+);

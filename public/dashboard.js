@@ -47,7 +47,21 @@ const translations = {
     copyFailed: 'Could not copy. Please select and copy manually.',
     allSites: 'All websites', dateLocale: 'en-US', minutes: 'm', seconds: 's',
     statusError: 'The service returned an error. Check the server logs.',
-    signOutConfirm: 'Sign out of Webstat?', refreshed: 'Dashboard refreshed.'
+    signOutConfirm: 'Sign out of Webstat?', refreshed: 'Dashboard refreshed.',
+    systemSettings: 'System settings', systemSettingsDescription: 'Configure your public URL, mail server, and email alerts.',
+    publicAddress: 'Public address', publicAddressHelp: 'Used to create tracking snippets. Existing website snippets are not changed.',
+    publicUrl: 'Public URL', emailServer: 'Email server (SMTP)', smtpHost: 'SMTP host',
+    smtpPort: 'Port', smtpUser: 'Username', smtpPassword: 'Password', smtpFrom: 'Sender email',
+    alertRecipient: 'Alert recipient', smtpSecure: 'Use implicit TLS (usually port 465)',
+    clearSmtpPassword: 'Clear saved SMTP password', emailAlerts: 'Email alerts',
+    dailyReport: 'Daily analytics report (UTC)', weeklyReport: 'Weekly analytics report (Monday, UTC)',
+    queueErrors: 'Database write failures (at most once per 30 minutes)',
+    databaseHealthAlerts: 'Database unavailable / recovered',
+    encryptionNote: 'SMTP password is encrypted in the database with the server-only SETTINGS_ENCRYPTION_KEY.',
+    sendTestEmail: 'Send test email', saveSettings: 'Save settings', savedSettings: 'Settings saved.',
+    settingsLoadFailed: 'Could not load system settings.', testEmailSent: 'Test email sent.',
+    hasSmtpPassword: 'A SMTP password is saved. Leave the password field empty to keep it.',
+    noSmtpPassword: 'No SMTP password saved.', settingsTestFirst: 'Save settings first, then send a test email.'
   },
   tr: {
     privateAnalytics: 'GİZLİLİK ODAKLI ANALİTİK', welcome: "Webstat'a hoş geldiniz",
@@ -95,7 +109,21 @@ const translations = {
     copyFailed: 'Kopyalanamadı. Lütfen seçip elle kopyalayın.',
     allSites: 'Tüm siteler', dateLocale: 'tr-TR', minutes: 'dk', seconds: 'sn',
     statusError: 'Sunucu hata döndürdü. Sunucu kayıtlarını kontrol edin.',
-    signOutConfirm: 'Webstat oturumundan çıkılsın mı?', refreshed: 'Dashboard yenilendi.'
+    signOutConfirm: 'Webstat oturumundan çıkılsın mı?', refreshed: 'Dashboard yenilendi.',
+    systemSettings: 'Sistem ayarları', systemSettingsDescription: 'Genel URL, e-posta sunucusu ve e-posta uyarılarını ayarlayın.',
+    publicAddress: 'Genel adres', publicAddressHelp: 'İzleme kodlarının adresini belirler. Var olan site kodları otomatik değişmez.',
+    publicUrl: 'Genel URL', emailServer: 'E-posta sunucusu (SMTP)', smtpHost: 'SMTP sunucusu',
+    smtpPort: 'Port', smtpUser: 'Kullanıcı adı', smtpPassword: 'Şifre', smtpFrom: 'Gönderici e-posta',
+    alertRecipient: 'Uyarı alıcısı', smtpSecure: 'Implicit TLS kullan (genellikle 465 portu)',
+    clearSmtpPassword: 'Kayıtlı SMTP şifresini sil', emailAlerts: 'E-posta uyarıları',
+    dailyReport: 'Günlük analitik raporu (UTC)', weeklyReport: 'Haftalık analitik raporu (Pazartesi, UTC)',
+    queueErrors: 'Veritabanı yazma hataları (en fazla 30 dakikada bir)',
+    databaseHealthAlerts: 'Veritabanı erişilemez / yeniden erişilebilir',
+    encryptionNote: 'SMTP şifresi, yalnızca sunucuda bulunan SETTINGS_ENCRYPTION_KEY ile veritabanında şifrelenir.',
+    sendTestEmail: 'Test e-postası gönder', saveSettings: 'Ayarları kaydet', savedSettings: 'Ayarlar kaydedildi.',
+    settingsLoadFailed: 'Sistem ayarları yüklenemedi.', testEmailSent: 'Test e-postası gönderildi.',
+    hasSmtpPassword: 'SMTP şifresi kayıtlı. Saklı şifreyi korumak için bu alanı boş bırakın.',
+    noSmtpPassword: 'Kayıtlı SMTP şifresi yok.', settingsTestFirst: 'Önce ayarları kaydedin, ardından test e-postası gönderin.'
   }
 };
 
@@ -209,9 +237,78 @@ function renderSiteDetails() {
   toggle.dataset.active = String(site.is_active);
 }
 
+function updateSettingsForm(settings) {
+  $('#setting-public-url').value = settings.publicUrl || '';
+  $('#setting-smtp-host').value = settings.smtpHost || '';
+  $('#setting-smtp-port').value = settings.smtpPort || 587;
+  $('#setting-smtp-secure').checked = settings.smtpSecure === true;
+  $('#setting-smtp-user').value = settings.smtpUser || '';
+  $('#setting-smtp-password').value = '';
+  $('#setting-smtp-from').value = settings.smtpFrom || '';
+  $('#setting-alert-email').value = settings.alertEmail || '';
+  $('#setting-alert-daily').checked = settings.alertDaily === true;
+  $('#setting-alert-weekly').checked = settings.alertWeekly === true;
+  $('#setting-alert-queue').checked = settings.alertQueueErrors === true;
+  $('#setting-alert-health').checked = settings.alertServiceHealth === true;
+  $('#setting-clear-smtp-password').checked = false;
+  $('#smtp-password-status').textContent = t(settings.hasSmtpPassword ? 'hasSmtpPassword' : 'noSmtpPassword');
+}
+
+async function loadSystemSettings() {
+  const settings = await api('/api/admin/settings');
+  updateSettingsForm(settings);
+}
+
+function settingsPayload() {
+  return {
+    publicUrl: $('#setting-public-url').value.trim(),
+    smtpHost: $('#setting-smtp-host').value.trim(),
+    smtpPort: Number($('#setting-smtp-port').value),
+    smtpSecure: $('#setting-smtp-secure').checked,
+    smtpUser: $('#setting-smtp-user').value.trim(),
+    smtpPassword: $('#setting-smtp-password').value,
+    clearSmtpPassword: $('#setting-clear-smtp-password').checked,
+    smtpFrom: $('#setting-smtp-from').value.trim(),
+    alertEmail: $('#setting-alert-email').value.trim(),
+    alertDaily: $('#setting-alert-daily').checked,
+    alertWeekly: $('#setting-alert-weekly').checked,
+    alertQueueErrors: $('#setting-alert-queue').checked,
+    alertServiceHealth: $('#setting-alert-health').checked
+  };
+}
+
+async function saveSystemSettings({ sendTest = false } = {}) {
+  const message = $('#settings-message');
+  message.textContent = '';
+  message.classList.remove('error');
+  try {
+    const saved = await api('/api/admin/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settingsPayload())
+    });
+    updateSettingsForm(saved);
+    state.sites = state.sites.map((site) => ({
+      ...site,
+      snippet: `<script defer src="${saved.publicUrl}/track.js" data-site-id="${site.id}"></script>`
+    }));
+    renderSiteDetails();
+    if (sendTest) {
+      await api('/api/admin/settings/test-email', { method: 'POST' });
+      message.textContent = t('testEmailSent');
+    } else {
+      message.textContent = t('savedSettings');
+    }
+  } catch (error) {
+    message.textContent = error.message || t('settingsLoadFailed');
+    message.classList.add('error');
+  }
+}
+
 function setNoSites(isEmpty) {
   $('#no-sites').classList.toggle('hidden', !isEmpty);
-  $('#dashboard-content').classList.toggle('hidden', isEmpty);
+  $('#dashboard-content').classList.remove('hidden');
+  document.querySelectorAll('#dashboard-content > .metric-grid, #dashboard-content > .content-grid, #events, .site-settings')
+    .forEach((section) => section.classList.toggle('hidden', isEmpty));
 }
 
 async function loadSites() {
@@ -406,6 +503,7 @@ async function authenticate() {
     await refreshData().catch(showError);
     startRealtimeRefresh();
   }
+  await loadSystemSettings().catch((error) => showError(error));
 }
 
 function startRealtimeRefresh() {
@@ -512,6 +610,11 @@ function setupEvents() {
   $('#add-site-open').addEventListener('click', openSiteDialog);
   $('#empty-add-site').addEventListener('click', openSiteDialog);
   $('#site-form').addEventListener('submit', createSite);
+  $('#settings-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    saveSystemSettings();
+  });
+  $('#test-email').addEventListener('click', () => saveSystemSettings({ sendTest: true }));
   $('#toggle-site').addEventListener('click', (event) => updateSite(event.currentTarget.dataset.active !== 'true'));
   $('#delete-site').addEventListener('click', deleteSite);
   $('#rotate-token').addEventListener('click', rotateToken);
@@ -537,7 +640,7 @@ function setupEvents() {
   document.querySelectorAll('.nav-item[href^="#"]').forEach((link) => link.addEventListener('click', () => {
     document.querySelectorAll('.nav-item[href^="#"]').forEach((item) => item.classList.toggle('active', item === link));
     const target = link.getAttribute('href').slice(1);
-    $('#page-title').textContent = t(target === 'overview' ? 'overview' : target);
+    $('#page-title').textContent = t(target === 'overview' ? 'overview' : target === 'settings' ? 'systemSettings' : target);
   }));
   window.addEventListener('resize', () => renderChart(state.chartData));
 }
@@ -555,5 +658,6 @@ if (state.token) {
       refreshData().catch(showError);
       startRealtimeRefresh();
     }
+    loadSystemSettings().catch(showError);
   }).catch(() => showLogin());
 }

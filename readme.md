@@ -49,7 +49,9 @@ tracker.js ──fetch(keepalive)──▶ POST /api/track ──▶ 204 (anınd
 ### A) Docker (önerilen)
 ```bash
 cp .env.example .env
-# .env içinde: ADMIN_TOKEN, DASHBOARD_USERNAME, DASHBOARD_PASSWORD, PUBLIC_URL, TRUST_PROXY=1
+# ADMIN_TOKEN ve SETTINGS_ENCRYPTION_KEY için openssl rand -hex 32 çıktısı kullanın (farklı değerler).
+# DASHBOARD_USERNAME ve en az 12 karakterli DASHBOARD_PASSWORD belirleyin.
+# PUBLIC_URL ve TRUST_PROXY değerlerini dağıtımınıza göre düzenleyin.
 echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> .env
 docker compose up -d --build
 curl localhost:3000/health
@@ -127,6 +129,9 @@ Arayüz Türkçe ve İngilizce kullanılabilir. Dil tercihi tarayıcıda saklan�
 * Tarih aralığına göre özet metrikleri, trafik grafiği, en çok görüntülenen sayfalar, kaynak/cihaz/ülke kırılımları ve özel olayları inceleyin.
 * Son beş dakikanın aktif ziyaretçilerini ve sayfalarını 30 saniyede bir yenilenen anlık görünümde takip edin.
 * Site ekleyin, izleme kodunu kopyalayın, izlemeyi etkinleştirip devre dışı bırakın, okuma token'ını yenileyin veya siteyi tüm verileriyle silin.
+* **Sistem ayarları** bölümünde `PUBLIC_URL` değerini değiştirin. Yeni oluşturulan ve listelenen tracker snippet'leri bu adresi kullanır; mevcut sitelerdeki snippet'leri hedef web sitelerinde ayrıca güncelleyin.
+* SMTP sunucusu, port, TLS, kimlik bilgileri, gönderici ve tek alıcı adresini ayarlayıp test e-postası gönderin. SMTP parolası AES-256-GCM ile veritabanında şifrelenir. `SETTINGS_ENCRYPTION_KEY` değeri uygulama `.env` dosyasında sabit ve yedekli tutulmalıdır; kaybolursa kayıtlı SMTP parolası çözülemez.
+* İsteğe bağlı e-posta uyarıları: günlük rapor (her gün 09:00 UTC'den sonra), haftalık rapor (Pazartesi 09:00 UTC'den sonra), veritabanı yazma hataları (en fazla 30 dakikada bir) ve veritabanı bağlantısının kesilmesi/geri gelmesi.
 
 Yeni site oluşturulurken okuma token'ı yalnızca bir kez gösterilir; ayrıca entegrasyonlarda kullanacaksanız güvenli biçimde saklayın. Siteyi silme işlemi geri alınamaz.
 

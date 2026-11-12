@@ -21,6 +21,7 @@ const config = {
   adminToken: process.env.ADMIN_TOKEN || '',
   dashboardUsername: process.env.DASHBOARD_USERNAME || '',
   dashboardPassword: process.env.DASHBOARD_PASSWORD || '',
+  settingsEncryptionKey: process.env.SETTINGS_ENCRYPTION_KEY || '',
   trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
   dashboardOrigin: process.env.DASHBOARD_ORIGIN || '',
   respectDnt: bool(process.env.RESPECT_DNT, true),
@@ -40,6 +41,7 @@ config.assertRuntime = () => {
   if (config.adminToken.length < 32) throw new Error('ADMIN_TOKEN en az 32 karakter olmalı (openssl rand -hex 32)');
   if (!config.dashboardUsername || config.dashboardUsername.length > 128) throw new Error('DASHBOARD_USERNAME 1-128 karakter olmalı');
   if (config.dashboardPassword.length < 12) throw new Error('DASHBOARD_PASSWORD en az 12 karakter olmalı');
+  if (!/^[0-9a-f]{64}$/i.test(config.settingsEncryptionKey)) throw new Error('SETTINGS_ENCRYPTION_KEY 64 karakterlik hex anahtar olmalı (openssl rand -hex 32)');
 };
 
 module.exports = config;
