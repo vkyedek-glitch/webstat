@@ -1,0 +1,23 @@
+{
+  "name": "selfhosted-analytics",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Multi-domain, privacy-first, self-hosted web analytics",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "migrate": "node scripts/migrate.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "helmet": "^7.1.0",
+    "ioredis": "^5.4.1",
+    "pg": "^8.13.1"
+  },
+  "optionalDependencies": {
+    "maxmind": "^4.3.22"
+  }
+}

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Webstat Dashboard</title>
+  <link rel="stylesheet" href="/dashboard.css">
+  <script defer src="/dashboard.js"></script>
+</head>
+<body>
+  <div id="login-screen" class="login-screen">
+    <form id="login-form" class="login-card">
+      <div class="brand-mark">W</div>
+      <p class="eyebrow" data-i18n="privateAnalytics">PRIVATE ANALYTICS</p>
+      <h1 data-i18n="welcome">Welcome to Webstat</h1>
+      <p class="muted" data-i18n="loginDescription">Sign in with your username and password to manage sites and view reports.</p>
+      <label for="dashboard-username" data-i18n="username">Username</label>
+      <input id="dashboard-username" name="username" autocomplete="username" required>
+      <label for="dashboard-password" data-i18n="password">Password</label>
+      <input id="dashboard-password" name="password" type="password" autocomplete="current-password" required>
+      <button class="button primary full" type="submit" data-i18n="signIn">Sign in</button>
+      <p id="login-error" class="error" role="alert"></p>
+      <button class="text-button language-choice" type="button" data-language-toggle>Türkçe</button>
+    </form>
+  </div>
+  <div id="app" class="app-shell hidden">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Webstat"><span class="brand-mark">W</span><span>webstat</span></a>
+      <div class="side-label" data-i18n="workspace">WORKSPACE</div>
+      <label class="sr-only" for="site-select" data-i18n="selectSite">Select site</label>
+      <select id="site-select" class="site-select"></select>
+      <button id="add-site-open" class="button add-site" type="button"><span>＋</span><span data-i18n="addWebsite">Add website</span></button>
+      <nav class="side-nav">
+        <a class="nav-item active" href="#overview"><span class="nav-icon">◫</span><span data-i18n="overview">Overview</span></a>
+        <a class="nav-item" href="#pages"><span class="nav-icon">▤</span><span data-i18n="pages">Pages</span></a>
+        <a class="nav-item" href="#audience"><span class="nav-icon">◉</span><span data-i18n="audience">Audience</span></a>
+        <a class="nav-item" href="#events"><span class="nav-icon">⌁</span><span data-i18n="events">Events</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="connection"><span class="status-dot"></span><span data-i18n="connected">Connected</span></div>
+        <button id="sign-out" class="nav-item sign-out" type="button"><span class="nav-icon">↪</span><span data-i18n="signOut">Sign out</span></button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <div class="breadcrumbs"><span data-i18n="analytics">Analytics</span><span> / </span><strong id="breadcrumb-site">—</strong></div>
+          <h1 id="page-title" data-i18n="overview">Overview</h1>
+        </div>
+        <div class="top-actions">
+          <select id="date-range" aria-label="Date range">
+            <option value="7" data-i18n="last7">Last 7 days</option>
+            <option value="30" data-i18n="last30">Last 30 days</option>
+            <option value="90" data-i18n="last90">Last 90 days</option>
+          </select>
+          <button class="button icon-button" id="refresh" type="button" title="Refresh" data-i18n-title="refresh">↻</button>
+          <button class="button language-button" type="button" data-language-toggle>EN</button>
+        </div>
+      </header>
+      <div id="notice" class="notice hidden" role="status"></div>
+      <section id="no-sites" class="empty-state hidden">
+        <div class="empty-icon">◫</div>
+        <h2 data-i18n="noSitesTitle">Start measuring your website</h2>
+        <p data-i18n="noSitesDescription">Add your first website to get a tracking snippet and see analytics here.</p>
+        <button class="button primary" id="empty-add-site" type="button" data-i18n="addFirstWebsite">Add your first website</button>
+      </section>
+      <div id="dashboard-content">
+        <section class="metric-grid" id="overview">
+          <article class="metric-card"><div class="metric-label"><span data-i18n="visitors">Visitors</span><span class="metric-symbol purple">◉</span></div><div class="metric-value" id="metric-visitors">—</div><div class="metric-foot" data-i18n="dailyUnique">Daily unique visitors</div></article>
+          <article class="metric-card"><div class="metric-label"><span data-i18n="pageviews">Pageviews</span><span class="metric-symbol blue">▤</span></div><div class="metric-value" id="metric-pageviews">—</div><div class="metric-foot" data-i18n="totalPageviews">Total pageviews</div></article>
+          <article class="metric-card"><div class="metric-label"><span data-i18n="sessions">Sessions</span><span class="metric-symbol green">↗</span></div><div class="metric-value" id="metric-sessions">—</div><div class="metric-foot" data-i18n="totalSessions">Total sessions</div></article>
+          <article class="metric-card"><div class="metric-label"><span data-i18n="bounceRate">Bounce rate</span><span class="metric-symbol orange">⌁</span></div><div class="metric-value"><span id="metric-bounce">—</span><small>%</small></div><div class="metric-foot" data-i18n="singlePageSessions">Single-page sessions</div></article>
+          <article class="metric-card"><div class="metric-label"><span data-i18n="avgDuration">Avg. session duration</span><span class="metric-symbol teal">◷</span></div><div class="metric-value" id="metric-duration">—</div><div class="metric-foot" data-i18n="timePerSession">Time per session</div></article>
+        </section>
+        <section class="content-grid">
+          <article class="panel chart-panel">
+            <div class="panel-heading"><div><h2 data-i18n="trafficOverTime">Traffic over time</h2><p data-i18n="pageviewsVisitors">Pageviews and visitors</p></div><div class="chart-legend"><span><i class="legend-dot pageviews-dot"></i><span data-i18n="pageviews">Pageviews</span></span><span><i class="legend-dot visitors-dot"></i><span data-i18n="visitors">Visitors</span></span></div></div>
+            <div class="chart-wrap"><canvas id="traffic-chart" aria-label="Traffic chart"></canvas><div id="chart-empty" class="chart-empty hidden" data-i18n="noTraffic">No traffic data for this period</div></div>
+          </article>
+          <article class="panel realtime-panel">
+            <div class="panel-heading"><div><h2 data-i18n="realtime">Realtime</h2><p data-i18n="last5Minutes">Last 5 minutes</p></div><span class="live-pill"><i></i><span data-i18n="live">LIVE</span></span></div>
+            <div class="realtime-number" id="realtime-visitors">—</div><div class="muted" data-i18n="activeVisitors">Active visitors</div>
+            <div class="subheading" data-i18n="topPagesNow">Top pages right now</div><div id="realtime-pages" class="compact-list"></div>
+          </article>
+        </section>
+        <section class="content-grid lower-grid">
+          <article class="panel" id="pages"><div class="panel-heading"><div><h2 data-i18n="topPages">Top pages</h2><p data-i18n="mostViewedPages">Most viewed pages in this period</p></div></div><div id="pages-list" class="table-wrap"></div></article>
+          <article class="panel" id="audience"><div class="panel-heading"><div><h2 data-i18n="audience">Audience</h2><p data-i18n="sessionsBySource">Sessions by source</p></div></div><div id="sources-list" class="rank-list"></div><div class="panel-divider"></div><div class="mini-columns"><div><div class="subheading" data-i18n="devices">Devices</div><div id="devices-list" class="rank-list small-rank"></div></div><div><div class="subheading" data-i18n="countries">Countries</div><div id="countries-list" class="rank-list small-rank"></div></div></div></article>
+        </section>
+        <section class="panel events-panel" id="events"><div class="panel-heading"><div><h2 data-i18n="topEvents">Top events</h2><p data-i18n="customEventsCollected">Custom events collected during this period</p></div></div><div id="events-list" class="table-wrap"></div></section>
+        <section class="panel site-settings">
+          <div class="panel-heading"><div><h2 data-i18n="siteSettings">Website settings</h2><p data-i18n="siteSettingsDescription">Manage tracking and access for this website</p></div><div class="settings-actions"><button id="toggle-site" class="button" type="button"></button><button id="rotate-token" class="button" type="button" data-i18n="rotateToken">Rotate read token</button><button id="delete-site" class="button danger-outline" type="button" data-i18n="deleteWebsite">Delete website</button></div></div>
+          <div class="site-details"><div><span data-i18n="domain">Domain</span><strong id="site-domain">—</strong></div><div><span data-i18n="trackingStatus">Tracking status</span><strong id="site-status">—</strong></div><div><span data-i18n="created">Created</span><strong id="site-created">—</strong></div></div>
+          <div class="snippet-heading"><div><h3 data-i18n="trackingSnippet">Tracking snippet</h3><p data-i18n="snippetDescription">Add this snippet inside the &lt;head&gt; of your website.</p></div><button id="copy-snippet" class="button" type="button" data-i18n="copy">Copy</button></div>
+          <pre id="snippet-code" class="code-block"></pre>
+        </section>
+        <footer><span>Webstat · <span data-i18n="privacyFirst">Privacy-first analytics</span></span><span><a href="/health" target="_blank" rel="noreferrer" data-i18n="systemHealth">System health</a></span></footer>
+      </div>
+    </main>
+  </div>
+  <dialog id="site-dialog" class="modal">
+    <form id="site-form" class="modal-card">
+      <div class="modal-title"><div><p class="eyebrow" data-i18n="workspace">WORKSPACE</p><h2 data-i18n="addWebsite">Add website</h2></div><button type="button" class="close-button" data-close-dialog aria-label="Close">×</button></div>
+      <label for="site-name" data-i18n="websiteName">Website name</label><input id="site-name" name="name" maxlength="100" required placeholder="My website">
+      <label for="site-domain" data-i18n="domain">Domain</label><input id="site-domain" name="domain" required placeholder="example.com">
+      <label class="checkbox-label"><input type="checkbox" name="allow_subdomains" checked><span data-i18n="allowSubdomains">Allow subdomains</span></label>
+      <label class="checkbox-label"><input type="checkbox" name="enforce_origin" checked><span data-i18n="enforceOrigin">Validate request origin</span></label>
+      <p id="site-form-error" class="error" role="alert"></p>
+      <div class="modal-actions"><button type="button" class="button" data-close-dialog data-i18n="cancel">Cancel</button><button type="submit" class="button primary" data-i18n="createWebsite">Create website</button></div>
+    </form>
+  </dialog>
+  <dialog id="token-dialog" class="modal">
+    <div class="modal-card"><div class="modal-title"><div><p class="eyebrow" data-i18n="important">IMPORTANT</p><h2 data-i18n="saveToken">Save your read token</h2></div><button type="button" class="close-button" data-close-dialog aria-label="Close">×</button></div><p class="muted" data-i18n="tokenWarning">This token is shown only once. Store it securely before closing this window.</p><div id="token-value" class="secret-value"></div><div class="modal-actions"><button id="copy-token" class="button" type="button" data-i18n="copy">Copy</button><button type="button" class="button primary" data-close-dialog data-i18n="done">Done</button></div></div>
+  </dialog>
+</body>
+</html>
